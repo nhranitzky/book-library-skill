@@ -125,30 +125,30 @@ All search commands support:
 ## Installing the Skill in Openclaw
 
 The skill is in the folder `book-library`.
-
-This packages the skill, copies it to your Openclaw device, unzips it, and runs the interactive installer — which registers the skill and sets the `BOOKS_DB` path in Openclaw's config.
-
+ 
 To install manually on the Openclaw device:
 
 - copy the `book-library` to the skill folder of Openclaw
+- execute the `install-skill.sh` script
 
-```bash
-cd ~/.openclaw/skills/book-library
-bash install-skill.sh
-```
+    ```bash
+    cd ~/.openclaw/skills/book-library
+    bash install-skill.sh
+    ```
 
-The installer will:
-- Install Python dependencies with `uv sync`
-- Prompt for the SQLite database path
-- Register the skill via `openclaw config set`
-
----
-
-Check if the skill is ready:
+    The installer will:
+    - Install Python dependencies with `uv sync`
+    - Prompt for the SQLite database path
+    - Register the skill via `openclaw config set` (sets the `BOOKS_DB` path in Openclaw's config)
+ 
+- Check if the skill is ready:
 
 ```bash
 openclaw skills info book-library
 ```
+
+- create a new session in your messaging app
+
 ## License
 
 MIT
