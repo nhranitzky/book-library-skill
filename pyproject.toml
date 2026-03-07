@@ -1,3 +1,0 @@
-[tool.uv.workspace]
-members = ["book-library"]
- 

@@ -6,3 +6,4 @@ __pycache__/
 *.skill_v*
 .env
 data/
+CLAUDE.md
