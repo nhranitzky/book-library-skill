@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# =============================================================================
+# books – Personal Book Library CLI launcher
+#
+# Runs the Python book scripts via `uv run --project`, ensuring that the
+# correct virtual environment and dependencies are always used without
+# any manual activation step.
+#
+# Usage:
+#   books import  <csv-file>
+#   books search  <query>
+#   books author  <name>
+#   books title   <title>
+#   books isbn    <isbn>
+#   books year    <year> [--to YEAR]
+#   books list    [--sort title|author|year|publisher]
+#   books stats
+#   books --help
+#
+# Environment variables:
+#   BOOKS_DB   Override the default database path (books.db in project root)
+# =============================================================================
+
+set -euo pipefail
+
+# Resolve the real directory of this script, following symlinks
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+
+# The project root is one level above bin/
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+exec uv run --project "$PROJECT_ROOT" --directory "${PROJECT_ROOT}" python -m scripts.main "$@"
