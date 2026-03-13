@@ -1,16 +1,14 @@
-# Book Library Skill for Openclaw
+# Book Library Skill
 
-An [Openclaw](https://openclaw.ai) skill that lets you search and browse your personal book collection from the terminal — or by asking your AI assistant. Backed by a local SQLite database populated from a CSV export.
+Search and browse your personal book collection from the terminal. Backed by a local SQLite database populated from a CSV export.
 
 > Built for readers who track their books in **BookBuddy** (or any app that exports CSV).
 
 ---
 
-## How It Works
+## Installation
 
-1. Export your book list as a CSV from BookBuddy (or any compatible app)
-2. Import the CSV into a local SQLite database with `books import`
-3. Install the skill in Openclaw — your AI can now search your library on your behalf
+See [setup/SETUP.md](book-library/setup/SETUP.md) for installation instructions — both for **Openclaw** and **Claude Code**.
 
 ---
 
@@ -19,10 +17,9 @@ An [Openclaw](https://openclaw.ai) skill that lets you search and browse your pe
 ```
 book-library-skill/
 ├── Makefile                      ← Dev tasks: install, lint, package, deploy
-├── install-skill.sh              ← Full deploy + remote install in one step
-└── book-library/                 ← The Openclaw skill package
+└── book-library/                 ← The skill package
     ├── SKILL.md                  ← Skill manifest and AI instructions
-    ├── pyproject.toml            ← Python dependencies (click, rich)
+    ├── pyproject.toml            ← Python dependencies
     ├── bin/
     │   └── books                 ← Shell launcher
     ├── scripts/
@@ -36,40 +33,15 @@ book-library-skill/
     │   ├── cmd_year.py           ← books year
     │   ├── cmd_list.py           ← books list
     │   └── cmd_stats.py          ← books stats
-    └── references/
-        └── installation.md       ← Detailed installation guide
+    └── setup/
+        ├── SETUP.md              ← Installation guide
+        ├── setup-openclaw.sh     ← Openclaw setup script
+        └── setup-claude.sh       ← Claude Code setup script
 ```
 
 ---
 
-## Requirements
-
-| Tool | Version |
-|------|---------|
-| [uv](https://docs.astral.sh/uv/) | ≥ 0.4 |
-| Python | ≥ 3.11 (managed by uv) |
-
----
-
-## Setup
-
-**1. Install dependencies**
-
-```bash
-make install
-```
-
-**2. Set the database path**
-
-```bash
-export BOOKS_DB=/path/to/your/books.db
-```
-
-Add this to your shell profile (`~/.zshrc` or `~/.bashrc`) to make it permanent.
-
----
-
-## Importing Your Book Collection
+## Creating the Database
 
 Export your books from **BookBuddy** as a CSV file, then import it:
 
@@ -80,16 +52,13 @@ books import ~/Downloads/my_books.csv
 This creates the SQLite database on first run. The command is safe to re-run — books with a matching ISBN are skipped automatically.
 
 ```bash
-# Full refresh (replace records with matching ISBN)
-books import my_books.csv --replace
-
-# Clean slate (wipe everything, then import)
-books import my_books.csv --clear
+books import my_books.csv --replace   # Replace records with matching ISBN
+books import my_books.csv --clear     # Wipe everything, then import fresh
 ```
 
 ### CSV Format
 
-The importer expects a header row. BookBuddy's default export maps directly to the expected columns:
+The importer expects a header row. BookBuddy's default export maps directly to these columns (case-insensitive, extra columns are ignored):
 
 | Column | Required |
 |--------|----------|
@@ -100,54 +69,43 @@ The importer expects a header row. BookBuddy's default export maps directly to t
 | `Summary` | |
 | `ISBN` | |
 
-Extra columns are silently ignored.
-
 ---
 
-## Available Commands
+## CLI Reference
 
 ```bash
-books search "machine learning"          # Keyword search across all fields
-books author Tolkien                     # Search by author (partial match)
-books title "Clean Code"                 # Search by title (partial match)
-books isbn 978-0-13-235088-4            # Exact ISBN lookup
-books year 2020 --to 2024               # Books by publication year range
-books list --sort year --limit 30        # Browse all books
-books stats                              # Library overview and top authors
+books import <file.csv>              # Import books from CSV
+books search <query...>              # Keyword search across all fields
+books author <name...>               # Search by author (partial match)
+books title <title...>               # Search by title (partial match)
+books isbn <isbn>                    # Exact ISBN lookup
+books year <year> [--to <year>]      # Books by publication year or range
+books list [--sort FIELD] [--offset N]  # Browse all books
+books stats                          # Library overview and top authors
 ```
 
 All search commands support:
-- `--summary / -s` — include the book summary in output
-- `--limit N / -n N` — cap the number of results
 
----
+- `--summary` / `-s` — include the book summary in output
+- `--limit N` / `-n N` — cap the number of results
 
-## Installing the Skill in Openclaw
-
-The skill is in the folder `book-library`.
- 
-To install manually on the Openclaw device:
-
-- copy the `book-library` to the skill folder of Openclaw
-- execute the `install-skill.sh` script
-
-    ```bash
-    cd ~/.openclaw/skills/book-library
-    bash install-skill.sh
-    ```
-
-    The installer will:
-    - Install Python dependencies with `uv sync`
-    - Prompt for the SQLite database path
-    - Register the skill via `openclaw config set` (sets the `BOOKS_DB` path in Openclaw's config)
- 
-- Check if the skill is ready:
+### Examples
 
 ```bash
-openclaw skills info book-library
+books search "machine learning"
+books author Tolkien --summary
+books title "Clean Code"
+books isbn 978-0-13-235088-4
+books year 2020 --to 2024
+books list --sort year --limit 30
+books stats --top 15
 ```
 
-- create a new session in your messaging app
+---
+## Development Notes
+
+Parts of this codebase were generated or assisted by Claude Code Sonnet 4.6.
+All generated code has been reviewed and tested by human developers.
 
 ## License
 

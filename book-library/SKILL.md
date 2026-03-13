@@ -1,7 +1,6 @@
 ---
 name: book-library
 description: Search and manage a personal book list stored in a local SQLite database, imported from a CSV file . Use this skill whenever the user wants to search their book collection by author, title, ISBN, or publication year; browse all books; get statistics
-user-invocable: true
 licence: MIT
 metadata: { "openclaw": {"emoji": "📚" } }
 ---
@@ -14,7 +13,7 @@ file. All scripts live in `scripts/`, managed with `uv`, launched via `bin/books
 
 ## Available Commands
 
-Prepend the full path of the launcher script: `{baseDir}/bin/books <action> [options]`
+
 
 | Command | User asks |
 |---------|-------------|
@@ -53,7 +52,7 @@ The import command expects a CSV file with a **header row** using these column n
 | `ISBN` | | ISBN-10 or ISBN-13, hyphens optional |
 
 
-## How Openclaw Should Use This Skill
+## How  Should Use This Skill
 
 1. **Identify intent** — import CSV / search / browse / statistics.
 2. **Extract parameters** from the user's message (author name, title fragment, ISBN, year).

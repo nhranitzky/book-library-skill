@@ -15,6 +15,7 @@ import sqlite3
 from pathlib import Path
 from typing import Sequence
 
+from dotenv import load_dotenv
 from rich.console import Console
 from rich.table import Table
 from rich import box
@@ -22,6 +23,8 @@ from rich import box
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
+
+load_dotenv(Path.home() / ".config" / "skills" / "book-library" / ".env")
 
 # The database lives next to the project root by default, but can be
 # overridden with the BOOKS_DB environment variable.
