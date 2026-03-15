@@ -25,7 +25,6 @@ The script will:
 - Install Python dependencies with `uv sync --no-dev`
 - Check for `BOOKLIBRARY_DB` in `~/.config/skills/book-library/.env`
 - Prompt for the database path if not set (with the option to set it manually later)
-- Register the skill and `BOOKLIBRARY_DB` in Openclaw via `openclaw config set`
 - Add `bin/books` to the Openclaw exec-approvals allowlist
 
 ### 3. Verify the skill is active

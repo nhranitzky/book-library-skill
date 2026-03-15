@@ -44,15 +44,6 @@ if [ -z "$DB_PATH" ]; then
     fi
 fi
 
-if [ -n "$DB_PATH" ]; then
-    if [ -f "$DB_PATH" ]; then
-        echo "  database found at $DB_PATH"
-    else
-        echo "  Warning: database file not found at $DB_PATH"
-        echo "  You can create it by running: books import <file.csv>"
-    fi
-fi
-
 # Register the skill with Openclaw
 echo ""
 echo "Configuring the skill in Openclaw..."
