@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import click
 
-from scripts.utils import console, get_conn, print_books
+from scripts.utils import console, get_conn, print_books, rows_to_dicts, output_json, logger
 
 
 @click.command()
@@ -19,7 +19,9 @@ from scripts.utils import console, get_conn, print_books
 @click.option("--summary", "-s", is_flag=True, default=False,
               help="Include the summary column in output.")
 @click.option("--limit", "-n", default=50, show_default=True, help="Maximum rows to return.")
-def author(query: tuple[str, ...], summary: bool, limit: int):
+@click.option("--json", "as_json", is_flag=True, default=False,
+              help="Output results as JSON.")
+def author(query: tuple[str, ...], summary: bool, limit: int, as_json: bool):
     """
     Search books by AUTHOR name (partial, case-insensitive).
 
@@ -28,6 +30,7 @@ def author(query: tuple[str, ...], summary: bool, limit: int):
         books author Tolkien
         books author "Ursula Le Guin"
         books author stephen king --summary
+        books author Tolkien --json
     """
     terms = " ".join(query).strip()
     words = terms.split()
@@ -41,5 +44,9 @@ def author(query: tuple[str, ...], summary: bool, limit: int):
     rows = conn.execute(sql, params).fetchall()
     conn.close()
 
-    console.print(f"\n[bold]Author search:[/] [italic]{terms}[/]")
-    print_books(rows, show_summary=summary)
+    logger.debug("author query=%r  results=%d", terms, len(rows))
+    if as_json:
+        output_json(rows_to_dicts(rows))
+    else:
+        console.print(f"\n[bold]Author search:[/] [italic]{terms}[/]")
+        print_books(rows, show_summary=summary)

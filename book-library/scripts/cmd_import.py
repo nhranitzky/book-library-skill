@@ -2,7 +2,7 @@
 books import – Load a CSV book list into the SQLite database.
 
 CSV format (with header row):
-    Title,Author,Publisher,Year Published,Summary,ISBN
+    Title,Author,Publisher,Year Published,Summary,ISBN,Date Added
 
 The command is idempotent:
   - Without flags        : skips books whose ISBN already exists (safe re-run).
@@ -16,12 +16,28 @@ from __future__ import annotations
 
 import csv
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import click
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
 
-from scripts.utils import console, DB_PATH, get_conn
+from scripts.utils import console, DB_PATH, get_conn, logger
+
+
+# Date formats tried in order when parsing "Date Added"
+_DATE_FORMATS = [
+    "%Y-%m-%d",
+    "%Y/%m/%d",
+    "%d.%m.%Y",
+    "%d/%m/%Y",
+    "%m/%d/%Y",
+    "%d-%m-%Y",
+    "%B %d, %Y",
+    "%b %d, %Y",
+    "%d %B %Y",
+    "%d %b %Y",
+]
 
 
 def _normalise_year(raw: str) -> int | None:
@@ -35,12 +51,31 @@ def _normalise_year(raw: str) -> int | None:
         return None
 
 
+def _normalise_date(raw: str) -> str | None:
+    """
+    Parse a date string in any of the known formats and return ISO date (YYYY-MM-DD).
+    Returns None for blank or unparseable values.
+    """
+    s = raw.strip()
+    if not s:
+        return None
+    # Strip time component if present (e.g. "2024-03-15 10:30:00")
+    s = s.split(" ")[0] if " " in s else s
+    for fmt in _DATE_FORMATS:
+        try:
+            return datetime.strptime(s, fmt).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+    logger.error("Cannot parse date value: %r", raw)
+    return None
+
+
 def _read_csv(path: Path) -> list[dict]:
     """
     Read the CSV file and return a list of normalised row dicts.
 
     Expected header (case-insensitive):
-        Title, Author, Publisher, Year Published, Summary, ISBN
+        Title, Author, Publisher, Year Published, Summary, ISBN, Date Added
     """
     rows: list[dict] = []
     with path.open(newline="", encoding="utf-8-sig") as fh:
@@ -48,6 +83,7 @@ def _read_csv(path: Path) -> list[dict]:
 
         # Normalise header names: strip whitespace, lower-case for lookup
         if reader.fieldnames is None:
+            logger.error("CSV file appears to be empty: %s", path)
             console.print("[red]CSV file appears to be empty.[/]")
             sys.exit(1)
 
@@ -57,8 +93,11 @@ def _read_csv(path: Path) -> list[dict]:
         required = {"title"}
         missing = required - set(norm.keys())
         if missing:
+            logger.error("CSV missing required column(s): %s (file: %s)", ', '.join(missing), path)
             console.print(f"[red]CSV is missing required column(s):[/] {', '.join(missing)}")
             sys.exit(1)
+
+        logger.debug("CSV columns detected: %s", list(norm.keys()))
 
         def get(row: dict, normalised_key: str) -> str:
             orig = norm.get(normalised_key, "")
@@ -72,8 +111,9 @@ def _read_csv(path: Path) -> list[dict]:
                 "year_published": _normalise_year(get(row, "year_published")),
                 "summary":        get(row, "summary"),
                 "isbn":           get(row, "isbn"),
+                "date_added":     _normalise_date(get(row, "date_added")),
             })
-
+    
     return rows
 
 
@@ -100,12 +140,15 @@ def import_csv(csv_file: Path, replace: bool, clear: bool):
     db_path = DB_PATH
 
     # ── Read CSV ─────────────────────────────────────────────────────────────
+    logger.debug("Import started: %s  replace=%s  clear=%s", csv_file, replace, clear)
     console.print(f"[bold]Reading[/] {csv_file} …")
     rows = _read_csv(csv_file)
     if not rows:
+        logger.error("CSV file contains no data rows: %s", csv_file)
         console.print("[yellow]CSV file contains no data rows.[/]")
         return
 
+    logger.debug("CSV rows read: %d", len(rows))
     console.print(f"  Found [bold]{len(rows)}[/] record(s).")
 
     # ── Open / create DB ─────────────────────────────────────────────────────
@@ -147,13 +190,14 @@ def import_csv(csv_file: Path, replace: bool, clear: bool):
 
                 conn.execute(
                     """
-                    INSERT INTO books (title, author, publisher, year_published, summary, isbn)
-                    VALUES (:title, :author, :publisher, :year_published, :summary, :isbn)
+                    INSERT INTO books (title, author, publisher, year_published, summary, isbn, date_added)
+                    VALUES (:title, :author, :publisher, :year_published, :summary, :isbn, :date_added)
                     """,
                     r,
                 )
                 inserted += 1
             except Exception as exc:  # noqa: BLE001
+                logger.error("Error inserting row %r: %s", r.get("title"), exc)
                 console.print(f"[red]Error inserting row {r.get('title')!r}:[/] {exc}")
                 errors += 1
             finally:
@@ -161,6 +205,11 @@ def import_csv(csv_file: Path, replace: bool, clear: bool):
 
     conn.commit()
     conn.close()
+
+    logger.debug(
+        "Import complete: inserted=%d replaced=%d skipped=%d errors=%d  db=%s",
+        inserted, replaced, skipped, errors, db_path,
+    )
 
     # ── Summary ───────────────────────────────────────────────────────────────
     console.print()

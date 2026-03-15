@@ -13,13 +13,15 @@ from rich.table import Table
 from rich.columns import Columns
 from rich import box
 
-from scripts.utils import console, get_conn
+from scripts.utils import console, get_conn, output_json, logger
 
 
 @click.command()
 @click.option("--top", "-n", default=10, show_default=True,
               help="How many top authors / publishers to display.")
-def stats(top: int):
+@click.option("--json", "as_json", is_flag=True, default=False,
+              help="Output results as JSON.")
+def stats(top: int, as_json: bool):
     """
     Display library statistics: counts, year range, top authors/publishers.
 
@@ -27,6 +29,7 @@ def stats(top: int):
     Example:
         books stats
         books stats --top 20
+        books stats --json
     """
     conn = get_conn()
 
@@ -72,6 +75,23 @@ def stats(top: int):
     ).fetchall()
 
     conn.close()
+
+    logger.debug("stats: total=%d  authors=%d  publishers=%d  years=%s–%s",
+                 total, authors, publishers, year_min, year_max)
+
+    if as_json:
+        output_json({
+            "total":             total,
+            "unique_authors":    authors,
+            "unique_publishers": publishers,
+            "year_min":          year_min,
+            "year_max":          year_max,
+            "missing_isbn":      no_isbn,
+            "top_authors":       [{"author": r[0], "count": r[1]} for r in top_authors],
+            "top_publishers":    [{"publisher": r[0], "count": r[1]} for r in top_publishers],
+            "top_decades":       [{"decade": f"{r[0]}s", "count": r[1]} for r in top_decades],
+        })
+        return
 
     # ── Overview panel ────────────────────────────────────────────────────────
     from rich.text import Text

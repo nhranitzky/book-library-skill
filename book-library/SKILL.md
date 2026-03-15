@@ -8,8 +8,7 @@ metadata: { "openclaw": {"emoji": "📚" } }
 # Book Library Skill
 
 Search a personal book collection backed by **SQLite**, populated from a CSV
-file. All scripts live in `scripts/`, managed with `uv`, launched via `bin/books`.
-
+file. 
 
 ## Available Commands
 
@@ -26,14 +25,16 @@ file. All scripts live in `scripts/`, managed with `uv`, launched via `bin/books
 | `{baseDir}/bin/books isbn <isbn>` | Exact ISBN lookup (hyphens/spaces stripped automatically) |
 | `{baseDir}/bin/books year <year>` | All books published in a specific year |
 | `{baseDir}/bin/books year <year> --to <year>` | Books published within a year range |
+| `{baseDir}/bin/books added-date [--from DATE] [--to DATE]` | Books by date added (interval) |
 | `{baseDir}/bin/books list` | Browse all books (paginated, sortable) |
 | `{baseDir}/bin/books stats` | Library overview: counts, top authors, publishers, decades |
 
- 
+
 ## Key Options (all search commands)
 
 - `--summary / -s` — include the summary column in output
 - `--limit N / -n N` — cap result rows (default varies per command)
+- `--json` — output as JSON instead of a table (preferred for AI consumption)
  
 
 
@@ -52,12 +53,12 @@ The import command expects a CSV file with a **header row** using these column n
 | `ISBN` | | ISBN-10 or ISBN-13, hyphens optional |
 
 
-## How  Should Use This Skill
+## How Openclaw Should Use This Skill
 
 1. **Identify intent** — import CSV / search / browse / statistics.
-2. **Extract parameters** from the user's message (author name, title fragment, ISBN, year).
-3. **Run the appropriate command** via `{baseDir}/bin/books`  
-4. **Relay results** — summarise the table or highlight the best match.
+2. **Extract parameters** from the user's message (author name, title fragment, ISBN, year, date range).
+3. **Run the appropriate command** via `{baseDir}/bin/books` — always add `--json` for machine-readable output.
+4. **Relay results** — parse the JSON and summarise or highlight the best match.
 
 ## Example Invocations
 
@@ -65,16 +66,17 @@ The import command expects a CSV file with a **header row** using these column n
 # First-time setup
 {baseDir}/bin/books import ~/Downloads/my_books.csv
 
-# Search
-{baseDir}/bin/books search "artificial intelligence"
-{baseDir}/bin/books author "Tolkien" --summary
-{baseDir}/bin/books title "Clean Code"
-{baseDir}/bin/books isbn 978-0-13-235088-4
-{baseDir}/bin/books year 2020 --to 2024
+# Search – use --json for AI-readable output
+{baseDir}/bin/books search "artificial intelligence" --json
+{baseDir}/bin/books author "Tolkien" --json
+{baseDir}/bin/books title "Clean Code" --json
+{baseDir}/bin/books isbn 978-0-13-235088-4 --json
+{baseDir}/bin/books year 2020 --to 2024 --json
+{baseDir}/bin/books added-date --from 2024-01-01 --json
 
 # Browse & stats
-{baseDir}/bin/books list --sort year --limit 30
-{baseDir}/bin/books stats --top 15
+{baseDir}/bin/books list --sort year --limit 30 --json
+{baseDir}/bin/books stats --json
 
 ```
 

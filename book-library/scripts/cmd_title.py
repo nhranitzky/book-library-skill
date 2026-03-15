@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import click
 
-from scripts.utils import console, get_conn, print_books
+from scripts.utils import console, get_conn, print_books, rows_to_dicts, output_json, logger
 
 
 @click.command()
@@ -17,7 +17,9 @@ from scripts.utils import console, get_conn, print_books
 @click.option("--summary", "-s", is_flag=True, default=False,
               help="Include the summary column in output.")
 @click.option("--limit", "-n", default=50, show_default=True, help="Maximum rows to return.")
-def title(query: tuple[str, ...], summary: bool, limit: int):
+@click.option("--json", "as_json", is_flag=True, default=False,
+              help="Output results as JSON.")
+def title(query: tuple[str, ...], summary: bool, limit: int, as_json: bool):
     """
     Search books by TITLE (partial, case-insensitive).
 
@@ -26,6 +28,7 @@ def title(query: tuple[str, ...], summary: bool, limit: int):
         books title "Lord of the Rings"
         books title clean code
         books title hobbit --summary
+        books title clean code --json
     """
     terms = " ".join(query).strip()
     words = terms.split()
@@ -39,5 +42,9 @@ def title(query: tuple[str, ...], summary: bool, limit: int):
     rows = conn.execute(sql, params).fetchall()
     conn.close()
 
-    console.print(f"\n[bold]Title search:[/] [italic]{terms}[/]")
-    print_books(rows, show_summary=summary)
+    logger.debug("title query=%r  results=%d", terms, len(rows))
+    if as_json:
+        output_json(rows_to_dicts(rows))
+    else:
+        console.print(f"\n[bold]Title search:[/] [italic]{terms}[/]")
+        print_books(rows, show_summary=summary)

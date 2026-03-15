@@ -22,25 +22,25 @@ ENV_FILE="$HOME/.config/skills/book-library/.env"
 DB_PATH=""
 
 if [ -f "$ENV_FILE" ]; then
-    DB_PATH="$(grep -E '^BOOKS_DB=' "$ENV_FILE" | cut -d'=' -f2- | tr -d '"' | tr -d "'")"
+    DB_PATH="$(grep -E '^BOOKLIBRARY_DB=' "$ENV_FILE" | cut -d'=' -f2- | tr -d '"' | tr -d "'")"
 fi
 
 if [ -z "$DB_PATH" ]; then
     echo ""
-    echo "BOOKS_DB not set in $ENV_FILE"
+    echo "BOOKLIBRARY_DB not set in $ENV_FILE"
     read -p "Set the database path now? [y/N] " SET_NOW
     if [[ "$SET_NOW" =~ ^[Yy]$ ]]; then
         read -p "Path to SQLite books database: " DB_PATH
         mkdir -p "$(dirname "$ENV_FILE")"
-        echo "BOOKS_DB=$DB_PATH" >> "$ENV_FILE"
+        echo "BOOKLIBRARY_DB=$DB_PATH" >> "$ENV_FILE"
         echo "  Saved to $ENV_FILE"
     else
         echo ""
-        echo "  You can set BOOKS_DB later in one of two ways:"
+        echo "  You can set BOOKLIBRARY_DB later in one of two ways:"
         echo "    1. Add it to $ENV_FILE:"
-        echo "         BOOKS_DB=/path/to/books.db"
+        echo "         BOOKLIBRARY_DB=/path/to/books.db"
         echo "    2. Set it in the Openclaw configuration:"
-        echo "         openclaw config set skills.entries.\"book-library\".env.BOOKS_DB /path/to/books.db --json"
+        echo "         openclaw config set skills.entries.\"book-library\".env.BOOKLIBRARY_DB /path/to/books.db --json"
     fi
 fi
 
@@ -58,7 +58,7 @@ echo ""
 echo "Configuring the skill in Openclaw..."
 openclaw config set skills.entries."book-library".enabled true --json
 if [ -n "$DB_PATH" ]; then
-    openclaw config set skills.entries."book-library".env.BOOKS_DB "$DB_PATH" --json
+    openclaw config set skills.entries."book-library".env.BOOKLIBRARY_DB "$DB_PATH" --json
 fi
 
 # Add bin/books to exec-approvals allowlist

@@ -14,14 +14,15 @@ Usage:
 
 import click
 
-from scripts.cmd_import import import_csv
-from scripts.cmd_search import search
-from scripts.cmd_author import author
-from scripts.cmd_title  import title
-from scripts.cmd_isbn   import isbn
-from scripts.cmd_year   import year
-from scripts.cmd_list   import list_books
-from scripts.cmd_stats  import stats
+from scripts.cmd_import     import import_csv
+from scripts.cmd_search     import search
+from scripts.cmd_author     import author
+from scripts.cmd_title      import title
+from scripts.cmd_isbn       import isbn
+from scripts.cmd_year       import year
+from scripts.cmd_list       import list_books
+from scripts.cmd_stats      import stats
+from scripts.cmd_added_date import added_date
 
 
 @click.group()
@@ -42,6 +43,7 @@ cli.add_command(isbn)
 cli.add_command(year)
 cli.add_command(list_books, name="list")
 cli.add_command(stats)
+cli.add_command(added_date)
 
 if __name__ == "__main__":
-    cli()
+    cli(prog_name="books")

@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import click
 
-from scripts.utils import console, get_conn, print_books
+from scripts.utils import console, get_conn, print_books, rows_to_dicts, output_json, logger
 
 
 def _normalise_isbn(raw: str) -> str:
@@ -22,7 +22,9 @@ def _normalise_isbn(raw: str) -> str:
 @click.argument("query", nargs=-1, required=True)
 @click.option("--summary", "-s", is_flag=True, default=False,
               help="Include the summary column in output.")
-def isbn(query: tuple[str, ...], summary: bool):
+@click.option("--json", "as_json", is_flag=True, default=False,
+              help="Output results as JSON.")
+def isbn(query: tuple[str, ...], summary: bool, as_json: bool):
     """
     Look up a book by ISBN (hyphens/spaces are ignored).
 
@@ -31,6 +33,7 @@ def isbn(query: tuple[str, ...], summary: bool):
         books isbn 978-0-06-112008-4
         books isbn 9780061120084
         books isbn 0-06-112008-1
+        books isbn 978-0-06-112008-4 --json
     """
     raw = " ".join(query)
     normalised = _normalise_isbn(raw)
@@ -51,5 +54,9 @@ def isbn(query: tuple[str, ...], summary: bool):
 
     conn.close()
 
-    console.print(f"\n[bold]ISBN search:[/] [italic]{raw}[/]")
-    print_books(rows, show_summary=summary)
+    logger.debug("isbn query=%r  normalised=%r  results=%d", raw, normalised, len(rows))
+    if as_json:
+        output_json(rows_to_dicts(rows))
+    else:
+        console.print(f"\n[bold]ISBN search:[/] [italic]{raw}[/]")
+        print_books(rows, show_summary=summary)

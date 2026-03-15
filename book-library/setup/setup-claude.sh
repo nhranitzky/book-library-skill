@@ -17,17 +17,17 @@ uv sync --project "$SKILL_ROOT"
 echo "Setting execute permissions for bin/books..."
 chmod +x "$SKILL_ROOT/bin/books"
 
-# Check BOOKS_DB in ~/.config/skills/book-library/.env
+# Check BOOKLIBRARY_DB in ~/.config/skills/book-library/.env
 ENV_FILE="$HOME/.config/skills/book-library/.env"
 DB_PATH=""
 
 if [ -f "$ENV_FILE" ]; then
-    DB_PATH="$(grep -E '^BOOKS_DB=' "$ENV_FILE" | cut -d'=' -f2- | tr -d '"' | tr -d "'")"
+    DB_PATH="$(grep -E '^BOOKLIBRARY_DB=' "$ENV_FILE" | cut -d'=' -f2- | tr -d '"' | tr -d "'")"
 fi
 
 if [ -n "$DB_PATH" ]; then
     echo ""
-    echo "BOOKS_DB=$DB_PATH (from $ENV_FILE)"
+    echo "BOOKLIBRARY_DB=$DB_PATH (from $ENV_FILE)"
     if [ -f "$DB_PATH" ]; then
         echo "  database found at $DB_PATH"
     else
@@ -36,10 +36,10 @@ if [ -n "$DB_PATH" ]; then
     fi
 else
     echo ""
-    echo "BOOKS_DB not set in $ENV_FILE"
+    echo "BOOKLIBRARY_DB not set in $ENV_FILE"
     read -p "Path to SQLite books database: " DB_PATH
     mkdir -p "$(dirname "$ENV_FILE")"
-    echo "BOOKS_DB=$DB_PATH" >> "$ENV_FILE"
+    echo "BOOKLIBRARY_DB=$DB_PATH" >> "$ENV_FILE"
     echo "  Saved to $ENV_FILE"
 fi
 

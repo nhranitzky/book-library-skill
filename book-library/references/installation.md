@@ -149,10 +149,10 @@ uv run --project /path/to/books-skill python -m scripts.main stats
 ## Custom Database Location
 
 By default the database is stored as `books.db` in the project root.
-Override this with the `BOOKS_DB` environment variable:
+Override this with the `BOOKLIBRARY_DB` environment variable:
 
 ```bash
-export BOOKS_DB=/home/you/data/library.db
+export BOOKLIBRARY_DB=/home/you/data/library.db
 books import my_books.csv
 books search Tolkien
 ```
